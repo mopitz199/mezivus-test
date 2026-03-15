@@ -1,0 +1,6 @@
+Django>=5.0 # Django package
+gunicorn>=22.0.0 # Service to run django in production
+psycopg[binary]>=3.1.18 # PostgreSQL database adapter for Python
+redis>=5.0.0 # Redis client for Python
+dj-database-url>=2.2.0 # Utility to parse database URLs
+django-environ>=0.11.2 # Library for managing environment variables in Django
