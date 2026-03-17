@@ -20,6 +20,8 @@ steps:
       - $_DEPLOY_REGION
       - '--platform'
       - $_PLATFORM
+      - '--update-secrets'
+      - 'DATABASE_URL=DATABASE_URL:latest,DEBUG=DEBUG:latest,SECRET_KEY=SECRET_KEY:latest,CLOUDRUN_SERVICE_URLS=CLOUDRUN_SERVICE_URLS:latest,ALLOWED_HOSTS=ALLOWED_HOSTS:latest'
     entrypoint: gcloud
 timeout: 1200s
 images:
