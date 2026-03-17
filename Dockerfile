@@ -14,7 +14,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 FROM base AS local
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
 
 FROM base AS production
-CMD ["gunicorn", "mezivus.wsgi:application", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4"]
+RUN python manage.py collectstatic --noinput
+# The PORT is set by Cloud Run, so we use it in the command to bind the server to the correct port.
+CMD ["sh", "-c", "gunicorn mezivus.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 4"]

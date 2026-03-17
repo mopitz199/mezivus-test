@@ -21,5 +21,4 @@ from tracker.views import database_health
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('health/db/', database_health, name='database_health'),
 ]

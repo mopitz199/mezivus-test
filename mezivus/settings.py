@@ -11,13 +11,11 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import environ
+from urllib.parse import urlparse
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-
 
 # Initialize DEBUG environment variables as False by default
 # Also it will load all the container environment variables from env_file in docker-compose.yaml
@@ -27,12 +25,21 @@ env = environ.Env(DEBUG=(bool, False))
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = env("SECRET_KEY", default="django-insecure-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost"])
+if not DEBUG:
+    CLOUDRUN_SERVICE_URLS = env("CLOUDRUN_SERVICE_URLS", default="")  # Ensure this variable is set in production (IMPORTANT)
+    CSRF_TRUSTED_ORIGINS = CLOUDRUN_SERVICE_URLS.split(",")
+    # Remove the scheme from URLs for ALLOWED_HOSTS
+    ALLOWED_HOSTS = [urlparse(url).netloc for url in CSRF_TRUSTED_ORIGINS]
+
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+else:
+    ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -56,6 +63,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if not DEBUG:
+    MIDDLEWARE.insert(0, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 ROOT_URLCONF = 'mezivus.urls'
 
@@ -81,7 +91,7 @@ WSGI_APPLICATION = 'mezivus.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": env.db("DATABASE_URL")
+    "default": env.db("DATABASE_URL", default="")
 }
 
 # DATABASES = {
@@ -126,4 +136,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+if not DEBUG:
+    STORAGES = {
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+    WHITENOISE_MAX_AGE = 31536000 # Cache static files for 1 year
+    STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATIC_URL = "/static/"

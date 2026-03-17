@@ -7,9 +7,9 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
+      - "8080:8080"
     env_file: # Load the env file in the system container environment
-      - ../.env
+      - ../.env-dev
     depends_on:
       - db
       - redis
