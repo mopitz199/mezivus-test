@@ -12,7 +12,7 @@ build-up:
 up:
 	docker compose --env-file $(ENV_FILE) up
 
-### --- FOR PRODUCTION --- 
+### --- FOR PRODUCTION ----
 build-prod:
 	docker build --target production --platform linux/amd64 --tag southamerica-west1-docker.pkg.dev/mezivus-test/mezivus-test-repository/mi-api:production .
 
